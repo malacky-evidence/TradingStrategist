@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "TradeStrategist — Offline Trading Simulator",
+  "short_name": "TradeStrategist",
+  "description": "Practise forex, crypto, stocks and synthetics with a MetaTrader-style chart, RSI, volume, ICT tools and simulated news. Works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0f14",
+  "theme_color": "#0b0f14",
+  "categories": ["finance", "education"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

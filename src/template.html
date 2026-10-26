@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TradingStrategist">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>TradingStrategist — Offline Trading Simulator</title>
+<meta name="description" content="Free offline trading simulator: practise forex, crypto, stocks and synthetics with a MetaTrader-style chart, RSI, volume, ICT/smart-money tools and simulated news events. No account, no data feed.">
+<meta name="theme-color" content="#0b0f14">
+<meta property="og:title" content="TradingStrategist — Offline Trading Simulator">
+<meta property="og:description" content="Practise price action, FVG, liquidity and news trading on a realistic simulated market. Free, offline, single file.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f14'/%3E%3Cpath d='M14 46 28 30l8 8 14-18' fill='none' stroke='%234c8dff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<noscript><p style="padding:24px;font-family:system-ui">TradingStrategist needs JavaScript enabled to run.</p></noscript>
+<div id="app">
+  <header id="top">
+    <div class="brand"><span class="logo">◢</span><b>TradingStrategist</b><small>Simulator</small></div>
+    <div class="grp"><select id="symSel" title="Instrument"></select></div>
+    <div class="grp seg" id="tfBar"></div>
+    <div class="grp">
+      <button class="tb" id="bVol" title="Volume">Vol</button>
+      <button class="tb" id="bRsi" title="RSI (14)">RSI</button>
+      <button class="tb" id="bFvg" title="Highlight fair value gaps (study aid)">FVG</button>
+      <button class="tb" id="bGrid" title="Grid">Grid</button>
+    </div>
+    <div class="grp seg" id="speedBar"></div>
+    <button class="tb accent" id="bInstall" hidden title="Install TradingStrategist as an app on this device">⬇ Install app</button>
+    <button class="tb" id="bStep" title="Pause, then reveal the market one candle at a time (N)">⏩ Candle</button>
+    <button class="tb" id="bNext" title="Fast-forward to the next news release alert">⏭ Next news</button>
+    <div class="spacer"></div>
+    <div class="clock"><span id="simClock">—</span><small id="simSession">—</small></div>
+    <button class="tb" id="bTheme" title="Light / dark">◐</button>
+    <button class="tb" id="bMenu" title="Settings">⚙</button>
+  </header>
+
+  <div id="body">
+    <aside id="watch">
+      <div class="ph">Market Watch</div>
+      <div id="watchList"></div>
+    </aside>
+
+    <main id="center">
+      <div id="chartRow">
+        <div id="drawBar">
+          <button class="tb" data-tool="" id="tCursor" title="Cursor (Esc)">🖱</button>
+          <button class="tb" data-tool="hline" title="Horizontal line">━</button>
+          <button class="tb" data-tool="trend" title="Trend line (click two points or drag)">╱</button>
+          <button class="tb" data-tool="rect" title="Rectangle / zone">▭</button>
+          <button class="tb" data-tool="fib" title="Fibonacci retracement">Fib</button>
+          <button class="tb" id="bMagnet" title="Magnet: snap to candle OHLC">🧲</button>
+          <button class="tb" id="bClear" title="Delete all drawings on this symbol">🗑</button>
+        </div>
+        <div id="chartWrap">
+          <canvas id="cv"></canvas>
+          <div id="navBar">
+            <button class="tb" id="nStart" title="Oldest data (Home)">⏮</button>
+            <button class="tb" id="nBack" title="Scroll back (←)">◀</button>
+            <button class="tb" id="nFwd" title="Scroll forward (→)">▶</button>
+            <button class="tb" id="nZout" title="Zoom out (−)">−</button>
+            <button class="tb" id="nZin" title="Zoom in (+)">+</button>
+            <button class="tb" id="nAuto" title="Reset price scale">Auto</button>
+            <button class="tb accent" id="nLive" title="Jump to latest candle (End)">Live ⏭</button>
+          </div>
+          <div id="banners"></div>
+        </div>
+      </div>
+      <div id="resizer" title="Drag to resize"></div>
+      <section id="bottom">
+        <div class="tabs" id="botTabs">
+          <button data-tab="pos" class="on">Trade <span class="cnt" id="cPos">0</span></button>
+          <button data-tab="pend">Pending <span class="cnt" id="cPend">0</span></button>
+          <button data-tab="hist">History</button>
+          <button data-tab="wallet">Wallet log</button>
+          <button data-tab="log">Journal</button>
+          <div class="spacer"></div>
+          <div id="botSummary"></div>
+        </div>
+        <div id="botBody"></div>
+      </section>
+    </main>
+
+    <aside id="side">
+      <section class="card" id="ticket">
+        <div class="ph">New order <span id="tkSym"></span></div>
+        <div class="pad">
+          <label class="row"><span>Type</span>
+            <select id="oType">
+              <option value="market">Market execution</option>
+              <option value="buy_limit">Buy limit</option><option value="sell_limit">Sell limit</option>
+              <option value="buy_stop">Buy stop</option><option value="sell_stop">Sell stop</option>
+            </select></label>
+          <label class="row" id="rowEntry" hidden><span>Entry price</span><input id="oPrice" type="number" step="any"></label>
+          <label class="row"><span>Volume (lots)</span>
+            <div class="stepper"><button id="lotMinus" type="button">−</button><input id="oLots" type="number" min="0.01" step="0.01" value="0.10"><button id="lotPlus" type="button">+</button></div></label>
+          <label class="row"><span>Stop loss</span><input id="oSL" type="number" step="any" placeholder="none"></label>
+          <div class="hint" id="hintSL"></div>
+          <label class="row"><span>Take profit</span><input id="oTP" type="number" step="any" placeholder="none"></label>
+          <div class="hint" id="hintTP"></div>
+          <div class="riskrow">
+            <label>Risk %<input id="oRisk" type="number" min="0.1" step="0.1" value="1"></label>
+            <button class="tb" id="bRisk" type="button" title="Set lots so that hitting the stop loss costs this % of equity">Lots from risk</button>
+          </div>
+          <div class="summary" id="tkSummary"></div>
+          <div id="tkStatus" class="status" hidden></div>
+          <div id="mktBtns" class="trade-btns">
+            <button class="sell" id="bSell"><small>SELL</small><b id="pxSell">—</b></button>
+            <div class="spr" id="spr">—</div>
+            <button class="buy" id="bBuy"><small>BUY</small><b id="pxBuy">—</b></button>
+          </div>
+          <button class="place" id="bPlace" hidden>Place order</button>
+        </div>
+      </section>
+
+      <section class="card" id="acct">
+        <div class="ph">Accounts</div>
+        <div class="pad">
+          <div class="kv big"><span>Main account</span><b id="aMain">—</b></div>
+          <div class="sep"></div>
+          <div class="kv big"><span>Trading account</span><b id="aBal">—</b></div>
+          <div class="kv"><span>Equity</span><b id="aEq">—</b></div>
+          <div class="kv"><span>Floating P/L</span><b id="aFl">—</b></div>
+          <div class="kv"><span>Margin used</span><b id="aMg">—</b></div>
+          <div class="kv"><span>Free margin</span><b id="aFree">—</b></div>
+          <div class="kv"><span>Margin level</span><b id="aLvl">—</b></div>
+          <div class="xfer">
+            <input id="xAmt" type="number" min="0" step="any" placeholder="Amount">
+            <button class="tb" id="xTo" title="Move money from Main to Trading">Main → Trading</button>
+            <button class="tb" id="xFrom" title="Move money from Trading to Main">Trading → Main</button>
+            <button class="tb" id="xDep" title="Add new money to the Main account">+ Add to Main</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="newsCard">
+        <div class="ph">Economic news <span class="sub">simulated</span></div>
+        <div id="newsList"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="ctxMenu" hidden></div>
+<div id="modal" hidden><div class="mbox" id="mbox"></div></div>
+<div id="loading"><div><div class="spin"></div><p>Generating 30 days of market history…</p></div></div>
+
+<script>
+/*__JS__*/
+</script>
+</body>
+</html>
